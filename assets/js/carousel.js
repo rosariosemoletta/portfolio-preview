@@ -422,7 +422,7 @@
      it several cards further, like real momentum scrolling. */
   var SWIPE_MIN   = 24;    /* px: below this on release, snap straight back (a tap, not a swipe) */
   var MOMENTUM_MS = 120;   /* how much of the release speed turns into extra reach */
-  var MAX_JUMP    = 5;     /* cards; a cap so one gesture can't skip the whole list */
+  var MAX_JUMP    = 12;    /* cards; a cap so one gesture can't skip the whole list */
   var dragging = false, dragOffset = 0;
   var lastX = 0, lastT = 0, vel = 0;   /* velocity from the most recent touchmove, not the whole gesture */
 
