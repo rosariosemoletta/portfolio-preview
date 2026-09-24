@@ -115,12 +115,15 @@
   /* the gap between two neighbouring cards' centers, given the current card size */
   function spacing() { return cardW * (window.innerWidth < 700 ? 0.62 : 0.78); }
 
-  /* ── target position of card i, given the active card ── */
-  function layout(i) {
+  /* ── target position of card i, given the current (possibly fractional) position ──
+     `pos` defaults to the settled `active` index; a touch drag passes a continuous
+     value instead, so the whole arc can ease under the finger instead of only ever
+     snapping between whole cards. */
+  function layout(i, pos) {
     var SPACING    = spacing();
     var SCALE_STEP = 0.12;
-
-    var dist    = i - active;
+    var p       = pos == null ? active : pos;
+    var dist    = i - p;
     var absDist = Math.abs(dist);
     return {
       tx:      dist * SPACING,
@@ -128,7 +131,7 @@
       scale:   Math.max(0.38, 1 - absDist * SCALE_STEP),
       opacity: Math.max(0.28, 1 - absDist * 0.16),
       z:       100 - absDist * 10,
-      blur:    absDist === 0 ? 0 : Math.min(0.9 + absDist * 0.7, 3)   /* px: rack focus */
+      blur:    absDist < 0.05 ? 0 : Math.min(0.9 + absDist * 0.7, 3)   /* px: rack focus */
     };
   }
 
@@ -173,6 +176,13 @@
     }
   }
 
+  /* mid-drag: only the positions move (1:1 with the finger, no CSS easing — the
+     caller turns transitions off first); title/slate/sound stay on the settled
+     card until the drag actually commits via setActive() */
+  function renderDrag(pos) {
+    cards.forEach(function (card, i) { place(card, layout(i, pos), 0); });
+  }
+
   function setInteractive(on) {
     cards.forEach(function (c) { c.tabIndex = on ? 0 : -1; });
   }
@@ -195,6 +205,15 @@
   function cardFor(id) {
     for (var i = 0; i < PROJECTS.length; i++) if (PROJECTS[i].id === id) return cards[i];
     return null;
+  }
+
+  /* jump straight to a project's card with no animation, before it is shown again —
+     used by the project page's "← Home" link so Home reopens on the project you were
+     just looking at, not wherever the carousel happened to be left */
+  function focus(id) {
+    for (var i = 0; i < PROJECTS.length; i++) {
+      if (PROJECTS[i].id === id) { active = i; return; }
+    }
   }
 
   /* the lens "hunts": the card sharpens, softens a touch again, and settles (steps of a CSS transition) */
@@ -323,7 +342,7 @@
     });
   }
 
-  window.HomeCarousel = { enter: enter, leave: leave, cardFor: cardFor };
+  window.HomeCarousel = { enter: enter, leave: leave, cardFor: cardFor, focus: focus };
 
   /* ── parallax: the pictures drift against their frames as the mouse moves ── */
   if (!reduceMotion) {
@@ -396,27 +415,51 @@
     }
   });
 
-  /* touch: how far AND how hard you swipe decide how many cards go by — a light
-     flick nudges one card, a hard one sends it several further, like real
-     momentum scrolling. Distance alone would miss a short-but-fast flick, so the
-     release velocity projects some extra "reach" onto the raw distance. */
-  var SWIPE_MIN   = 24;    /* px: below this it wasn't an intentional swipe */
-  var MOMENTUM_MS = 120;   /* how much of a flick's speed turns into extra reach */
+  /* touch: the arc follows the finger 1:1 while dragging (nudge it a little, it
+     moves a little — no fixed threshold before anything happens), then on release
+     it settles on whichever card is nearest, nudged further by how fast you let
+     go — a light flick barely carries past where you left it, a hard one sends
+     it several cards further, like real momentum scrolling. */
+  var SWIPE_MIN   = 24;    /* px: below this on release, snap straight back (a tap, not a swipe) */
+  var MOMENTUM_MS = 120;   /* how much of the release speed turns into extra reach */
   var MAX_JUMP    = 5;     /* cards; a cap so one gesture can't skip the whole list */
-  var touchT = 0;
+  var dragging = false, dragOffset = 0;
+  var lastX = 0, lastT = 0, vel = 0;   /* velocity from the most recent touchmove, not the whole gesture */
 
   container.addEventListener('touchstart', function (e) {
-    startX = e.touches[0].clientX; touchT = Date.now(); moved = false;
+    if (!ready) return;
+    dragging = true; moved = false;
+    startX = lastX = e.touches[0].clientX;
+    lastT = Date.now();
+    vel = 0; dragOffset = 0;
+    cards.forEach(function (c) { c.style.transition = 'none'; });   /* 1:1 tracking, no easing lag */
   }, { passive: true });
+
+  container.addEventListener('touchmove', function (e) {
+    if (!dragging) return;
+    var x = e.touches[0].clientX, t = Date.now();
+    var dt = Math.max(1, t - lastT);
+    vel = (x - lastX) / dt;
+    lastX = x; lastT = t;
+    var dx = x - startX;
+    if (Math.abs(dx) > 6) moved = true;
+    dragOffset = -dx / spacing();
+    var pos = Math.max(0, Math.min(N - 1, active + dragOffset));
+    renderDrag(pos);
+  }, { passive: true });
+
   container.addEventListener('touchend', function (e) {
+    if (!dragging) return;
+    dragging = false;
+    cards.forEach(function (c) { c.style.transition = ''; });   /* restore the CSS ease for the settle */
     var dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) < SWIPE_MIN) return;
-    var dt     = Math.max(16, Date.now() - touchT);
-    var v      = dx / dt;                        /* px/ms at release */
-    var reach  = dx + v * MOMENTUM_MS;
-    var jump   = Math.min(MAX_JUMP, Math.max(1, Math.round(Math.abs(reach) / spacing())));
-    if (reach > 0) setActive(Math.max(0, active - jump));
-    else           setActive(Math.min(N - 1, active + jump));
+    if (!moved || Math.abs(dx) < SWIPE_MIN) { render(); return; }   /* too small: spring back to the current card */
+    var reach = dx + vel * MOMENTUM_MS;
+    var jump  = Math.round(-reach / spacing());
+    if (jump === 0) jump = dx > 0 ? -1 : 1;               /* a real swipe always moves at least one card */
+    jump = Math.max(-MAX_JUMP, Math.min(MAX_JUMP, jump));
+    var target = Math.max(0, Math.min(N - 1, active + jump));
+    if (target === active) render(); else setActive(target);
   });
 
   /* ── keyboard ── */

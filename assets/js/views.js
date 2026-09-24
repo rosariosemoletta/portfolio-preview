@@ -143,7 +143,7 @@
         '<div class="project-layout">' +
           '<aside class="project-info">' +
             '<header class="pj-head fade-in">' +
-              '<a class="pj-back" href="#/work">← Work</a>' +
+              '<a class="pj-back" href="#/" data-home-card="' + p.id + '">← Home</a>' +
               '<h1 class="pj-title">' + p.title + '</h1>' +
             '</header>' +
             '<div class="pj-body fade-in">' +

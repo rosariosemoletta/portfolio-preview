@@ -186,6 +186,16 @@
     if (chip) applyFilter(chip);
   });
 
+  /* ---- project pages: the "← Home" link reopens Home on the card you were viewing ---- */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('.pj-back');
+    if (!a) return;
+    var id = a.getAttribute('data-home-card');
+    /* runs before the browser follows the link's own href="#/", so the carousel
+       is already pointed at the right card by the time Home re-renders */
+    if (id && window.HomeCarousel) window.HomeCarousel.focus(id);
+  });
+
   /* ---- project pages: ← → and swipe move between projects ---- */
   function projectLink(dir) {
     return document.querySelector('#view .project-nav .' + (dir < 0 ? 'pn-prev' : 'pn-next'));
