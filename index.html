@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Rosario Semoletta — Motion & Visual Designer. Motion graphics, brand design and visual experiences.">
+  <title>Rosario Semoletta</title>
+
+  <!-- Favicon: a dark rounded tile with the site's own registration-cross mark
+       (the same motif as the technical grid and the share-preview image). SVG
+       is the primary icon (scales perfectly); the PNGs are fallbacks for
+       contexts that don't support SVG favicons (older browsers, iOS). -->
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+  <!-- Open Graph / Twitter Card: the preview shown when this link is shared.
+       og:image needs an ABSOLUTE url once the site has a real domain — replace
+       the path below with the full https:// address at that point. The
+       canonical <link> and the sitemap/robots.txt need the same real domain
+       and are not added yet for the same reason — do all three together on
+       launch day, see the checklist in the [[project-portfolio-site]] memory. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Rosario Semoletta">
+  <meta property="og:title" content="Rosario Semoletta — Motion & Visual Designer">
+  <meta property="og:description" content="Motion graphics, brand design and visual experiences.">
+  <meta property="og:image" content="assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rosario Semoletta — Motion & Visual Designer">
+  <meta name="twitter:description" content="Motion graphics, brand design and visual experiences.">
+  <meta name="twitter:image" content="assets/img/og-image.png">
+
+  <!-- JSON-LD: helps search engines understand this is a person's portfolio
+       (eligible for a richer search result). No domain needed, so this one
+       is safe to ship before launch. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Rosario Semoletta",
+    "jobTitle": "Motion & Visual Designer",
+    "email": "mailto:rosario.semoletta@gmail.com",
+    "sameAs": [
+      "https://www.linkedin.com/in/rosariosemoletta",
+      "https://www.instagram.com/rxssdot",
+      "https://x.com/rxssdot"
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=Inter:wght@400&display=swap" rel="stylesheet">
+  <script>
+    /* ?nogate skips the entry screen (handy while working on the site);
+       data-view tells the CSS whether the home carousel or another section is shown */
+    (function () {
+      var root = document.documentElement;
+      if (/[?&]nogate/.test(location.search)) root.classList.add('no-gate');
+      var h = location.hash;
+      root.setAttribute('data-view', (!h || h === '#' || h === '#/') ? 'home' : 'page');
+    })();
+  </script>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/home.css">
+  <noscript><style>#gate { display: none; }</style></noscript>
+  <script src="assets/js/sound.js"></script>
+  <script src="assets/js/theme.js"></script>
+  <style>
+    /* ── which part of the site is visible ── */
+    html[data-view="home"], html[data-view="home"] body { overflow: hidden; overscroll-behavior: none; }
+    html:not([data-view="home"]) #stage,
+    html:not([data-view="home"]) #home-footer { display: none; }
+    html[data-view="home"] #view,
+    html[data-view="home"] #page-footer { display: none; }
+
+    /* ── STAGE ── */
+    #stage {
+      position: fixed; inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── TITLE above the active card (a link to that project) ── */
+    #carousel-label {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      position: relative;
+      z-index: 200;
+      pointer-events: none;
+    }
+    #carousel-label.visible { opacity: 1; }
+
+    #carousel-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink);
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      pointer-events: auto;
+      transition: opacity 0.2s;
+    }
+    #carousel-title:hover { opacity: 0.55; }
+
+    /* ── CAROUSEL: as tall as a card, so the title sits right above the cards ── */
+    #carousel {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: 100vw;
+      height: calc(var(--card-w, 260px) * 4 / 3 + 16px);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── CARD (its width is set by carousel.js through --card-w) ── */
+    .c-card {
+      position: absolute;
+      bottom: 0;
+      width: var(--card-w, 260px);
+      aspect-ratio: 3 / 4;
+      transform-origin: bottom center;
+      transition:
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity   0.45s ease,
+        filter    0.4s ease;               /* rack focus: the cards away from the center are softer */
+      will-change: transform, opacity;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0;   /* hidden until carousel.js plays the intro */
+    }
+    .c-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .c-placeholder {
+      width: 100%; height: 100%;
+      position: relative; overflow: hidden;
+      display: flex; align-items: flex-end;
+      padding: 30px 28px;         /* clear of the focus brackets */
+    }
+    .c-blob {
+      position: absolute;
+      top: -25%; right: -15%;
+      width: 75%; aspect-ratio: 1;
+      border-radius: 50%; opacity: 0.5;
+    }
+
+    /* ── HOME FOOTER ── */
+    #home-footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 24px var(--page-pad);
+      pointer-events: none; z-index: 10;
+    }
+    #home-footer span {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--ink-dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* keyboard focus on a card */
+    .c-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; }
+
+    @media (max-width: 600px) {
+      /* the bottom bar takes the bottom of the screen: the stage sits above it */
+      #stage { bottom: var(--tabbar-h); }
+      #home-footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- entry gate: driven by assets/js/gate.js -->
+  <div id="gate" role="dialog" aria-modal="true" aria-label="Welcome">
+    <div class="gate-inner">
+      <p class="gate-greeting" id="gate-greeting"></p>
+      <p class="gate-name">Rosario Semoletta</p>
+      <p class="gate-role">Motion &amp; Visual Designer</p>
+      <button class="gate-enter" type="button">Enter</button>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <a class="nav-logo" href="#/">Rosario Semoletta</a>
+    <div class="nav-links">
+      <a href="#/work" data-route="work">Work</a>
+      <a href="#/about" data-route="about">About</a>
+      <a href="#/contact" data-route="contact">Contact</a>
+    </div>
+  </nav>
+
+  <!-- bottom bar: the section links on phones (the top nav only keeps the two icon buttons) -->
+  <nav id="tabbar" aria-label="Sections">
+    <a href="#/work" data-route="work">Work</a>
+    <a href="#/about" data-route="about">About</a>
+    <a href="#/contact" data-route="contact">Contact</a>
+    <span class="tabbar-line" aria-hidden="true"></span>
+  </nav>
+
+  <!-- HOME: the carousel -->
+  <div id="stage">
+    <div id="carousel-label">
+      <a id="carousel-title" href="#/">—</a>
+    </div>
+    <div id="carousel" role="group" aria-label="Selected projects"></div>
+  </div>
+
+  <div id="home-footer">
+    <span>2026 · <span class="timecode" aria-hidden="true" title="How long you have been here, as a film timecode (hours : minutes : seconds : frames at 24 fps)">TC 00:00:00:00</span></span>
+    <span>hover to explore · click to open</span>
+  </div>
+
+  <!-- OTHER SECTIONS: filled in by assets/js/router.js -->
+  <main class="page-wrap" id="view"></main>
+
+  <footer id="page-footer">
+    <span>2026 · <span class="timecode" aria-hidden="true" title="How long you have been here, as a film timecode (hours : minutes : seconds : frames at 24 fps)">TC 00:00:00:00</span></span>
+    <span id="page-footer-right">Motion &amp; Visual Designer</span>
+  </footer>
+
+  <!-- accessibility fallback -->
+  <nav aria-label="Project list" class="sr-only">
+    <ul id="fallback-list"></ul>
+  </nav>
+
+  <noscript><p style="padding:96px 24px;font-family:monospace">This site needs JavaScript to run.</p></noscript>
+
+  <!-- ═══════════ PAGE TEXTS: edit About and Contact here ═══════════ -->
+
+  <template id="tpl-about">
+    <section class="section">
+      <div class="section-label">About</div>
+
+      <div class="about-grid">
+
+        <!-- photo: replace src with yours -->
+        <div class="about-photo fade-in">
+          <img src="assets/img/rosario-photo.jpg" alt="Rosario Semoletta"
+               onerror="this.style.display='none'">
+        </div>
+
+        <div class="about-text fade-in">
+          <p class="about-kicker">Motion &amp; Visual Designer · Italy</p>
+          <h2>I make ideas move.</h2>
+
+          <!-- ↓ edit the text as you like -->
+          <p>
+            I'm Rosario, a motion and visual designer from Italy. I take brands, products and
+            half-formed ideas and give them rhythm, depth and a reason to move.
+          </p>
+          <p>
+            I have a degree in Industrial Design, and it never left: I think in systems,
+            proportions and materials, even when the material is light, code or a swarm of
+            particles. Every project starts with one question — <em>what should this feel
+            like?</em> — and only then with the software.
+          </p>
+          <p>
+            My work lives between brand motion, product and interface animation, 3D and
+            procedural experiments. One week it's a logo dissolving into geometry, the next a
+            product interface finding its rhythm, or a single photograph rebuilt as a point cloud.
+          </p>
+          <p>
+            I'm open to freelance work, a place on the right team, or any interesting visual
+            challenge.
+          </p>
+          <a class="external-link" href="#/contact">Let's talk →</a>
+
+          <!-- SKILLS: what I do -->
+          <div class="about-sub"><span>01</span> What I do</div>
+          <ul class="skill-rows">
+            <li><span class="sk-n">01</span><span><b>Motion Design</b><i>Brand motion, product and UI animation, kinetic typography.</i></span></li>
+            <li><span class="sk-n">02</span><span><b>Visual Design</b><i>Brand identity, graphics and visual systems.</i></span></li>
+            <li><span class="sk-n">03</span><span><b>3D &amp; Procedural</b><i>Lighting, materials, simulations, generative visuals.</i></span></li>
+            <li><span class="sk-n">04</span><span><b>UI / UX</b><i>Interfaces that make sense before they move.</i></span></li>
+          </ul>
+
+          <!-- TOOLS: what I use, as keyframes on a timeline (each tool is a keyframe) -->
+          <div class="about-sub"><span>02</span> What I use</div>
+          <div class="timeline fade-in" role="list" aria-label="Tools">
+            <div class="tl-ruler" aria-hidden="true"></div>
+            <div class="tl-row" role="listitem">
+              <span class="tl-name">Design</span>
+              <ul class="tl-track"><li style="--i:0">Illustrator</li><li style="--i:1">Photoshop</li><li style="--i:2">Figma</li></ul>
+            </div>
+            <div class="tl-row" role="listitem">
+              <span class="tl-name">Motion &amp; 3D</span>
+              <ul class="tl-track"><li style="--i:3">After Effects</li><li style="--i:4">TouchDesigner</li><li style="--i:5">Blender</li><li style="--i:6">Cinema 4D</li><li style="--i:7">Houdini</li></ul>
+            </div>
+            <div class="tl-row" role="listitem">
+              <span class="tl-name">Web</span>
+              <ul class="tl-track"><li style="--i:8">HTML / CSS</li><li style="--i:9">AI</li></ul>
+            </div>
+            <span class="tl-playhead" aria-hidden="true"></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-contact">
+    <section class="section">
+      <div class="section-label">Contact</div>
+
+      <p class="contact-intro fade-in">
+        Got a wild idea<br>or a blank timeline?<br>Let's make it move.
+      </p>
+      <p class="contact-sub fade-in">
+        A freelance job, a seat on your team, a weird one-off experiment — if it involves pixels in motion, I'm in.
+      </p>
+
+      <div class="contact-links fade-in">
+
+        <!-- ↓ your contact details -->
+        <div class="contact-link-row">
+          <a href="mailto:rosario.semoletta@gmail.com">rosario.semoletta@gmail.com</a>
+          <!-- the Copy button copies the address of the mailto link on this row -->
+          <span class="contact-actions">
+            <button class="copy-btn" type="button" data-copy="mailto">Copy</button>
+            <span class="contact-link-type">Email</span>
+          </span>
+        </div>
+        <div class="contact-link-row">
+          <a href="https://www.linkedin.com/in/rosariosemoletta" target="_blank" rel="noopener">LinkedIn</a>
+          <span class="contact-link-type">Network</span>
+        </div>
+        <div class="contact-link-row">
+          <a href="https://www.instagram.com/rxssdot" target="_blank" rel="noopener">Instagram</a>
+          <span class="contact-link-type is-handle">@rxssdot</span>
+        </div>
+        <div class="contact-link-row">
+          <a href="https://x.com/rxssdot" target="_blank" rel="noopener">X</a>
+          <span class="contact-link-type is-handle">@rxssdot</span>
+        </div>
+
+      </div>
+    </section>
+  </template>
+
+  <script src="assets/js/projects.js"></script>
+  <script src="assets/js/gate.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/media.js"></script>
+  <script src="assets/js/ascii.js"></script>
+  <script src="assets/js/views.js"></script>
+  <script src="assets/js/fx.js"></script>
+  <script src="assets/js/grid.js"></script>
+  <script src="assets/js/carousel.js"></script>
+  <script src="assets/js/router.js"></script>
+  <script>
+    var ul = document.getElementById('fallback-list');
+    if (ul && typeof PROJECTS !== 'undefined') {
+      PROJECTS.forEach(function (p, i) {
+        var li = document.createElement('li');
+        var a  = document.createElement('a');
+        a.href = '#/project/' + p.id;
+        a.textContent = (i + 1) + '. ' + p.title + ' — ' + p.tag;
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

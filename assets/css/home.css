@@ -1,0 +1,229 @@
+/* ═══════════════════════════════════════════════
+   HOME.CSS — entry gate + home carousel effects
+   Only loaded by index.html
+   ═══════════════════════════════════════════════ */
+
+/* ═══════════════════ ENTRY GATE ═══════════════════ */
+#gate {
+  position: fixed; inset: 0;
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  color: var(--ink);
+  transition: opacity 0.7s var(--ease-out);
+}
+.no-gate #gate { display: none; }
+#gate.is-leaving { opacity: 0; pointer-events: none; }
+
+.gate-inner {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  padding: 0 var(--page-pad);
+}
+.gate-greeting {
+  margin-bottom: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.gate-name {
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 3vw, 28px);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.gate-role {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.gate-enter {
+  margin-top: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--line-strong);
+  /* the extra left padding cancels the trailing letter-spacing after the last
+     letter, so the word sits exactly in the middle of the rectangle */
+  padding: 15px 28px 15px calc(28px + 0.18em);
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.gate-enter:hover { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.gate-enter:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* the four lines fade up one after another */
+.gate-inner > * {
+  opacity: 0; transform: translateY(8px);
+  animation: gate-in 0.8s var(--ease-out) forwards;
+}
+.gate-inner > :nth-child(1) { animation-delay: 0.05s; }
+.gate-inner > :nth-child(2) { animation-delay: 0.20s; }
+.gate-inner > :nth-child(3) { animation-delay: 0.35s; }
+.gate-inner > :nth-child(4) { animation-delay: 0.60s; }
+@keyframes gate-in { to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  #gate { transition-duration: 0.01s; }
+  .gate-inner > * { animation-duration: 0.01s; animation-delay: 0s; }
+}
+
+/* ═══════════════════ TECHNICAL GRID (grid.js) ═══════════════════ */
+
+#grid-bg {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+/* on the inner pages it sits back a little, behind the text and the media */
+html:not([data-view="home"]) #grid-bg { opacity: 0.55; }
+
+/* ═══════════════════ CAROUSEL EFFECTS ═══════════════════ */
+
+/* the far cards fade into the page with this overlay (opacity set from carousel.js) instead of being
+   transparent, so the technical grid never shows through them */
+.c-card::after {
+  content: ''; position: absolute; inset: 0; z-index: 3;
+  background: var(--bg);
+  opacity: var(--fade, 0);
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+/* RGB split: for a moment the picture is swapped for its three colour channels (red, green, blue, each
+   one a copy of the picture tinted with that colour), added back together with "screen". Aligned they
+   equal the picture exactly; the red and the blue jump apart and fringe the edges, like a lens
+   hunting for focus. No colour cast: only the edges split. */
+.c-card .fx {
+  position: absolute; inset: 0; z-index: 1;
+  background-size: cover; background-position: center;
+  background-blend-mode: multiply;
+  mix-blend-mode: screen;
+  transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.1);   /* where the picture is (see above) */
+  opacity: 0;
+  pointer-events: none;
+}
+.c-card .fx-r { background-color: #f00; }
+.c-card .fx-g { background-color: #0f0; }
+.c-card .fx-b { background-color: #00f; }
+.c-card.glitch > img { visibility: hidden; }
+.c-card.glitch .fx { opacity: 1; }
+.c-card.glitch .fx-r { animation: fx-r 0.3s steps(1, end) both; }
+.c-card.glitch .fx-b { animation: fx-b 0.3s steps(1, end) both; }
+@keyframes fx-r {
+  0%   { transform: translate(calc(var(--px, 0px) - 6px), var(--py, 0px)) scale(1.1); }
+  22%  { transform: translate(calc(var(--px, 0px) + 4px), var(--py, 0px)) scale(1.1); }
+  46%  { transform: translate(calc(var(--px, 0px) - 3px), calc(var(--py, 0px) + 1px)) scale(1.1); }
+  70%  { transform: translate(calc(var(--px, 0px) - 1px), var(--py, 0px)) scale(1.1); }
+  100% { transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.1); }
+}
+@keyframes fx-b {
+  0%   { transform: translate(calc(var(--px, 0px) + 6px), var(--py, 0px)) scale(1.1); }
+  22%  { transform: translate(calc(var(--px, 0px) - 4px), var(--py, 0px)) scale(1.1); }
+  46%  { transform: translate(calc(var(--px, 0px) + 3px), calc(var(--py, 0px) - 1px)) scale(1.1); }
+  70%  { transform: translate(calc(var(--px, 0px) + 1px), var(--py, 0px)) scale(1.1); }
+  100% { transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.1); }
+}
+
+/* focus brackets: four corners that close in on the card that takes focus, like a camera
+   locking on. Inside the card, so they follow every move it makes. White with "difference",
+   so they read on light and dark pictures alike. */
+.c-card .fb {
+  position: absolute; z-index: 2;
+  width: 14px; height: 14px;
+  border: 0 solid #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.6s var(--ease-out), opacity 0.25s ease;
+}
+.c-card .fb-tl { top: 12px;    left: 12px;  border-top-width: 1.5px;    border-left-width: 1.5px;  transform: translate(24px, 24px); }
+.c-card .fb-tr { top: 12px;    right: 12px; border-top-width: 1.5px;    border-right-width: 1.5px; transform: translate(-24px, 24px); }
+.c-card .fb-bl { bottom: 12px; left: 12px;  border-bottom-width: 1.5px; border-left-width: 1.5px;  transform: translate(24px, -24px); }
+.c-card .fb-br { bottom: 12px; right: 12px; border-bottom-width: 1.5px; border-right-width: 1.5px; transform: translate(-24px, -24px); }
+.c-card.is-active .fb { opacity: 1; transform: none; }
+/* a small "+" flashes in the middle at the moment of the lock */
+.c-card .fb-c {
+  position: absolute; z-index: 2; left: 50%; top: 50%;
+  width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  mix-blend-mode: difference; pointer-events: none; opacity: 0;
+}
+.c-card .fb-c::before, .c-card .fb-c::after { content: ''; position: absolute; background: #fff; }
+.c-card .fb-c::before { left: 0; right: 0; top: 8.25px; height: 1.5px; }
+.c-card .fb-c::after  { top: 0; bottom: 0; left: 8.25px; width: 1.5px; }
+.c-card.is-active .fb-c { animation: fb-lock 0.9s ease-out; }
+@keyframes fb-lock { 0% { opacity: 0; transform: scale(1.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1); } }
+
+/* the slate under the active card: number, category, year, shape */
+#carousel-slate {
+  position: absolute; left: 50%; top: calc(100% + 14px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  opacity: 0; transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+#carousel-slate.visible { opacity: 1; }
+@media (max-width: 600px) { #carousel-slate { font-size: 9px; letter-spacing: 0.06em; } }
+
+/* parallax: the picture drifts a little against the frame (vars set by carousel.js) */
+.c-card img,
+.c-card .c-placeholder {
+  /* --px / --py: mouse parallax (carousel.js); --pulse: swells with the sound (sound.js analyser) */
+  transform: scale(calc(1.1 + var(--pulse, 0) * 0.025)) translate(var(--px, 0px), var(--py, 0px));
+  transition: transform 0.35s ease-out;
+}
+
+/* as each card lands, its picture fades up from a bright, washed-out state */
+.c-card.spawn > img, .c-card.spawn > .c-placeholder { animation: c-materialize 0.9s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+@keyframes c-materialize {
+  0%   { filter: brightness(1.8) saturate(0.2); opacity: 0.15; }
+  100% { filter: none; opacity: 1; }
+}
+
+/* once the intro is over the cards hover gently (individual `translate`
+   property, so it never fights with the transform used for the arc) */
+.c-card.floating {
+  animation: c-float 6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -1.3s);
+}
+@keyframes c-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -9px; }
+}
+
+/* cards without a cover image: colored block with category and title */
+.c-placeholder-text {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 5px;
+  color: rgba(13,13,13,0.8);
+}
+.c-placeholder-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.06em;
+  color: rgba(13,13,13,0.5);
+}
+.c-placeholder-title { font-family: var(--font-mono); font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .c-card .fb { transition: none; }
+  .c-card.glitch .fx-r, .c-card.glitch .fx-b { animation: none; }
+  .c-card.glitch > img { visibility: visible; }
+  .c-card.glitch .fx { opacity: 0; }
+  .c-card.is-active .fb-c { animation: none; }
+  .c-card.floating  { animation: none; }
+  .c-card.spawn > img, .c-card.spawn > .c-placeholder { animation: none; }
+}
