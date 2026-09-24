@@ -112,9 +112,12 @@
     container.style.setProperty('--card-w', cardW + 'px');
   }
 
+  /* the gap between two neighbouring cards' centers, given the current card size */
+  function spacing() { return cardW * (window.innerWidth < 700 ? 0.62 : 0.78); }
+
   /* ── target position of card i, given the active card ── */
   function layout(i) {
-    var SPACING    = cardW * (window.innerWidth < 700 ? 0.62 : 0.78);
+    var SPACING    = spacing();
     var SCALE_STEP = 0.12;
 
     var dist    = i - active;
@@ -213,6 +216,9 @@
     render();
     huntFocus(cards[idx]);
     window.dispatchEvent(new Event('carousel:focus'));
+    /* a light tap on devices with real haptics (mainly Android; iOS Safari has no
+       Vibration API at all, so this is silently a no-op there, not a bug) */
+    if (navigator.vibrate) navigator.vibrate(8);
     if (window.Sfx) {
       window.Sfx.tick(idx, dir);
       window.Sfx.mood(PROJECTS[idx].mood);
@@ -390,15 +396,27 @@
     }
   });
 
+  /* touch: how far AND how hard you swipe decide how many cards go by — a light
+     flick nudges one card, a hard one sends it several further, like real
+     momentum scrolling. Distance alone would miss a short-but-fast flick, so the
+     release velocity projects some extra "reach" onto the raw distance. */
+  var SWIPE_MIN   = 24;    /* px: below this it wasn't an intentional swipe */
+  var MOMENTUM_MS = 120;   /* how much of a flick's speed turns into extra reach */
+  var MAX_JUMP    = 5;     /* cards; a cap so one gesture can't skip the whole list */
+  var touchT = 0;
+
   container.addEventListener('touchstart', function (e) {
-    startX = e.touches[0].clientX; moved = false;
+    startX = e.touches[0].clientX; touchT = Date.now(); moved = false;
   }, { passive: true });
   container.addEventListener('touchend', function (e) {
     var dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 40) {
-      if (dx > 0 && active > 0)    setActive(active - 1);
-      if (dx < 0 && active < N-1)  setActive(active + 1);
-    }
+    if (Math.abs(dx) < SWIPE_MIN) return;
+    var dt     = Math.max(16, Date.now() - touchT);
+    var v      = dx / dt;                        /* px/ms at release */
+    var reach  = dx + v * MOMENTUM_MS;
+    var jump   = Math.min(MAX_JUMP, Math.max(1, Math.round(Math.abs(reach) / spacing())));
+    if (reach > 0) setActive(Math.max(0, active - jump));
+    else           setActive(Math.min(N - 1, active + jump));
   });
 
   /* ── keyboard ── */

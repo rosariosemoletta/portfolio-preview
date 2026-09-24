@@ -142,7 +142,10 @@
       html:
         '<div class="project-layout">' +
           '<aside class="project-info">' +
-            '<header class="pj-head fade-in"><h1 class="pj-title">' + p.title + '</h1></header>' +
+            '<header class="pj-head fade-in">' +
+              '<a class="pj-back" href="#/work">← Work</a>' +
+              '<h1 class="pj-title">' + p.title + '</h1>' +
+            '</header>' +
             '<div class="pj-body fade-in">' +
               '<div class="pj-desc">' + p.longDesc + '</div>' +
               '<dl class="pj-meta">' + rows + '</dl>' +
