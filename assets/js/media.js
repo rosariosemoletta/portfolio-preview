@@ -11,7 +11,8 @@
    The shape of an item comes from the data (ratio: "16:9") or is measured from the file.
 
    Videos (every item has a role, see views.js):
-     • "final": full player, sound, full screen (a play button for Vimeo / YouTube)
+     • "final": full player with the site's own controls (player.js), sound, full screen
+       (a play button for Vimeo / YouTube, which keep their own player)
      • "draft": no controls, muted, looping while it is on screen, and it loads
        only when it comes near the screen
      • the FIRST item is also the "main" one: the piece the card grows into
@@ -210,11 +211,13 @@
     s.items.forEach(function (it) {
       it.el.__item = it;
       if (it.role === 'final') {
-        if (it.kind === 'video') {                     /* a final video: duck the pad while it plays */
+        if (it.kind === 'video') {                     /* a final video: duck the pad while it plays with sound */
           var v = it.el.querySelector('video');
-          v.addEventListener('play',  function () { duck(true); });
+          v.addEventListener('play',  function () { duck(!v.muted); });
           v.addEventListener('pause', function () { duck(false); });
           v.addEventListener('ended', function () { duck(false); });
+          v.addEventListener('volumechange', function () { duck(!v.paused && !v.muted); });
+          if (window.Player) it.player = window.Player.attach(it.el);   /* custom controls (player.js) */
         }
       } else if (s.io && (it.kind === 'video' || it.kind === 'embed')) {
         s.io.observe(it.el);
@@ -285,6 +288,7 @@
     s.items.forEach(function (it) {
       var v = it.el.querySelector('video');
       if (v) v.pause();
+      if (it.player) it.player.destroy();
     });
     duck(false);
   }

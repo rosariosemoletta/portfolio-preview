@@ -292,15 +292,23 @@ h1, h2, h3, h4 {
   scrollbar-width: none;
 }
 .project-info::-webkit-scrollbar { display: none; }
+/* back to Home: a proper button, not a footnote — boxed like the nav's icon buttons,
+   inverts on hover like the Work filter chips */
 .pj-back {
-  display: inline-block;
+  display: inline-flex; align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  margin-bottom: 28px;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--ink-dim);
-  margin-bottom: 20px;
-  transition: color 0.2s;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
 }
-.pj-back:hover { color: var(--ink); }
+.pj-back:hover { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.pj-back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .pj-title {
   font-size: clamp(28px, 3.2vw, 46px);
   margin-bottom: 28px;
@@ -370,31 +378,183 @@ h1, h2, h3, h4 {
   width: 62%; aspect-ratio: 1;
   border-radius: 50%; opacity: 0.5;
 }
-/* the play button of a Vimeo / YouTube main piece */
+/* the play button of a Vimeo / YouTube main piece: the same PLAY tag as the custom player */
 .media-play {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; border: 0;
+  background: transparent; border: 0; padding: 0;
   cursor: pointer;
 }
-.media-play::before {
-  content: '';
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: var(--ink);
-  transition: transform 0.3s var(--ease-out);
-}
-.media-play::after {
-  content: '';
-  position: absolute;
-  border-style: solid;
-  border-width: 9px 0 9px 15px;
-  border-color: transparent transparent transparent var(--on-ink);
-  margin-left: 4px;
-}
-.media-play:hover::before { transform: scale(1.08); }
+.media-play:hover .vp-big { background: rgba(12, 12, 12, 0.92); }
 .media-play:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+
+/* ---- VIDEO PLAYER (player.js): a small edit monitor instead of the browser's controls ----
+   It sits on the picture, not on the page, so its colors are fixed (light marks on a dark
+   veil) in both themes; the corner brackets use a difference blend so they show on any frame. */
+.vp { container-type: inline-size; }
+.vp:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.vp-surface { position: absolute; inset: 0; z-index: 1; }
+
+.vp-br {
+  position: absolute; z-index: 2;
+  width: 16px; height: 16px;
+  border: 0 solid #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.45s var(--ease-out);
+}
+.vp-br-tl { top: 12px;    left: 12px;  border-top-width: 1.5px;    border-left-width: 1.5px;  transform: translate(10px, 10px); }
+.vp-br-tr { top: 12px;    right: 12px; border-top-width: 1.5px;    border-right-width: 1.5px; transform: translate(-10px, 10px); }
+.vp-br-bl { bottom: 12px; left: 12px;  border-bottom-width: 1.5px; border-left-width: 1.5px;  transform: translate(10px, -10px); }
+.vp-br-br { bottom: 12px; right: 12px; border-bottom-width: 1.5px; border-right-width: 1.5px; transform: translate(-10px, -10px); }
+.vp.ui-on .vp-br { opacity: 0.9; transform: none; }
+.vp.ui-on .vp-br-bl, .vp.ui-on .vp-br-br { opacity: 0; }     /* the bar is down there */
+
+/* the PLAY / REPLAY tag in the middle */
+.vp-big {
+  position: absolute; left: 50%; top: 50%; z-index: 3;
+  transform: translate(-50%, -50%);
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 38px; padding: 0 16px 0 13px;
+  background: rgba(12, 12, 12, 0.78);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f2f1ed;
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.25s, background 0.2s, transform 0.35s var(--ease-out);
+}
+.vp-big:hover { background: rgba(12, 12, 12, 0.92); }
+.vp-big-icon, .vp-big-icon svg { width: 13px; height: 13px; display: block; }
+.vp-big-dur:not(:empty) {
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(242, 241, 237, 0.55);
+  letter-spacing: 0.08em;
+}
+.vp.vp-playing .vp-big,
+.vp.vp-scrub .vp-big { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.94); }
+
+/* the bottom bar */
+.vp-bar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  padding: 30px 14px 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
+  color: #f2f1ed;
+  opacity: 0; transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.4s var(--ease-out);
+}
+.vp.ui-on .vp-bar { opacity: 1; transform: none; pointer-events: auto; }
+
+/* the timeline: a ruler with a playhead, like an editing app */
+.vp-track {
+  position: relative;
+  height: 20px;
+  cursor: pointer;
+  touch-action: none;
+}
+.vp-track:focus-visible { outline: 1px solid #fff; outline-offset: 2px; }
+.vp-line {
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 2px; margin-top: -1px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+  transition: height 0.2s, margin-top 0.2s;
+}
+.vp-buf, .vp-fill { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0); }
+.vp-buf  { background: rgba(255, 255, 255, 0.28); }
+.vp-fill { background: #f2f1ed; }
+.vp-track:hover .vp-line, .vp.vp-scrub .vp-line { height: 4px; margin-top: -2px; }
+.vp-tick {
+  position: absolute; top: 1px;
+  width: 1px; height: 4px; margin-left: -0.5px;
+  background: rgba(255, 255, 255, 0.4);
+}
+.vp-head {
+  position: absolute; top: 50%; left: 0;
+  width: 2px; height: 14px; margin: -7px 0 0 -1px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.vp-head::before {                       /* the square cap of the playhead */
+  content: ''; position: absolute; top: -3px; left: -3px;
+  width: 8px; height: 5px;
+  background: #fff;
+}
+.vp.vp-waiting .vp-head { animation: vp-blink 0.9s steps(2, jump-none) infinite; }
+@keyframes vp-blink { to { opacity: 0.25; } }
+
+/* time under the pointer */
+.vp-hover {
+  position: absolute; top: 2px; bottom: 2px; left: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s;
+}
+.vp-hover span {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  background: rgba(12, 12, 12, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+@media (hover: hover) { .vp-track:hover .vp-hover { opacity: 1; } }
+.vp.vp-scrub .vp-hover { opacity: 1; }
+
+.vp-row { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+.vp-spacer { flex: 1; }
+.vp-btn {
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  background: none; color: inherit;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.vp-btn svg { width: 16px; height: 16px; display: block; }
+.vp-btn:hover { border-color: rgba(255, 255, 255, 0.35); }
+.vp-btn:focus-visible { outline: 1px solid #fff; outline-offset: 1px; }
+.vp-mute .vp-b { transform-box: fill-box; transform-origin: center bottom; transition: transform 0.3s var(--ease-out), opacity 0.3s; }
+.vp-mute .vp-x { opacity: 0; transition: opacity 0.2s; }
+.vp.vp-muted .vp-mute .vp-b { transform: scaleY(0.4); opacity: 0.65; }   /* muted: a meter at zero, struck through */
+.vp.vp-muted .vp-mute .vp-x { opacity: 1; }
+.vp-tc {
+  margin-left: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.vp-tc-label, .vp-dur { color: rgba(242, 241, 237, 0.55); }
+
+/* narrow (portrait) videos: keep only what fits */
+@container (max-width: 360px) {
+  .vp-tc-label, .vp-dur { display: none; }
+  .vp-bar { padding: 26px 8px 6px; }
+  .vp-big-dur { display: none; }
+}
+
+/* full screen: the whole frame, letterboxed, native cursor (the custom one can't follow it there) */
+.vp:fullscreen { background: #000; }
+.vp:fullscreen video { object-fit: contain; }
+.vp:fullscreen .vp-bar { padding: 40px 28px 20px; }
+html.has-cursor .vp:fullscreen,
+html.has-cursor .vp:fullscreen * { cursor: default !important; }
+html.has-cursor .vp:fullscreen button,
+html.has-cursor .vp:fullscreen .vp-track { cursor: pointer !important; }
+html.has-cursor .vp:fullscreen:not(.ui-on) .vp-surface { cursor: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vp-br, .vp-big, .vp-bar { transition: opacity 0.2s; transform: none; }
+  .vp-big { transform: translate(-50%, -50%); }
+}
 
 /* phones: title, then all the media, then the text */
 @media (max-width: 900px) {

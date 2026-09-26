@@ -97,7 +97,11 @@
       var poster = m.poster || (e.provider === 'youtube' ? 'https://i.ytimg.com/vi/' + e.id + '/hqdefault.jpg' : '');
       return '<figure class="' + cls + '" data-kind="embed" data-provider="' + e.provider + '" data-id="' + e.id + '"' + attrs + '>' +
                (isFinal ? (poster ? '<img src="' + poster + '" alt="">' : '') +
-                          '<button class="media-play" type="button" aria-label="Play video"></button>' : '') +
+                          '<button class="media-play" type="button" aria-label="Play video">' +
+                            '<span class="vp-big" aria-hidden="true"><span class="vp-big-icon">' +
+                              '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>' +
+                            '</span><span class="vp-big-label">Play</span></span>' +
+                          '</button>' : '') +
              '</figure>';
     }
     /* a file: a draft loads nothing until it scrolls into view (media.js); with a WebM copy the lighter one goes first */
@@ -143,7 +147,7 @@
         '<div class="project-layout">' +
           '<aside class="project-info">' +
             '<header class="pj-head fade-in">' +
-              '<a class="pj-back" href="#/" data-home-card="' + p.id + '">← Home</a>' +
+              '<a class="pj-back" href="#/" data-home-card="' + p.id + '" aria-label="Back to Home">Back</a>' +
               '<h1 class="pj-title">' + p.title + '</h1>' +
             '</header>' +
             '<div class="pj-body fade-in">' +
